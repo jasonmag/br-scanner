@@ -30,7 +30,7 @@ export class ScanCoordinator {
       return [];
     }
 
-    if (fullFrame) {
+    if (fullFrame || !roi) {
       context.drawImage(video, 0, 0, rawCanvas.width, rawCanvas.height);
     } else {
       context.drawImage(
