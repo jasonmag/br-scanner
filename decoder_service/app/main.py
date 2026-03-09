@@ -33,14 +33,28 @@ FORMAT_MAP = {
 }
 
 
+def centered_crop(image: Image.Image, scale: float) -> Image.Image:
+    width, height = image.size
+    crop_width = max(1, round(width * scale))
+    crop_height = max(1, round(height * scale))
+    left = max(0, (width - crop_width) // 2)
+    top = max(0, (height - crop_height) // 2)
+    return image.crop((left, top, left + crop_width, top + crop_height))
+
+
 def build_variants(image: Image.Image) -> Iterable[tuple[Image.Image, float]]:
     rgb_image = image.convert("RGB")
     grayscale = ImageOps.grayscale(rgb_image)
     high_contrast = ImageEnhance.Contrast(grayscale).enhance(1.6)
 
+    crop_scales = (1.0, 0.72, 0.55, 0.4)
+
     for base_image, confidence in ((rgb_image, 0.88), (high_contrast, 0.82)):
-        for degrees in (0, 90, 180, 270):
-            yield base_image.rotate(degrees, expand=True), confidence
+        for scale in crop_scales:
+            candidate = base_image if scale == 1.0 else centered_crop(base_image, scale)
+            scale_bonus = 1.0 + (1.0 - scale) * 0.1
+            for degrees in (0, 90, 180, 270):
+                yield candidate.rotate(degrees, expand=True), round(confidence * scale_bonus, 2)
 
 
 def normalize_result(decoded: Decoded, confidence: float) -> dict[str, object] | None:

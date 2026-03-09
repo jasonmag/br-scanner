@@ -21,7 +21,7 @@ const DEFAULT_CAMERA_STATE: CameraState = {
 const DEFAULT_SCAN_STATE: ScanState = {
   isScanning: false,
   isPaused: false,
-  mode: "continuous",
+  mode: "single-scan",
   statusMessage: "Starting camera...",
   activeEngine: null,
   attemptsPerSecond: 0,
@@ -85,8 +85,11 @@ export function useBarcodeScanner(configOverrides?: Partial<ScannerConfig>) {
     }
 
     if (cameraState.isActive) {
-      loopRef.current?.resume();
-      setScanState((current) => ({ ...current, isPaused: false, statusMessage: "Camera ready" }));
+        setScanState((current) => ({
+          ...current,
+          isPaused: false,
+          statusMessage: "Center the barcode in the frame, then tap Scan."
+        }));
     }
   }, [cameraState.isActive, pageVisible]);
 
@@ -119,11 +122,14 @@ export function useBarcodeScanner(configOverrides?: Partial<ScannerConfig>) {
       setCameraState(managerRef.current.getState());
       setScanState((current) => ({
         ...current,
-        isScanning: true,
+        isScanning: false,
         isPaused: false,
-        statusMessage: "Camera ready"
+        mode: "single-scan",
+        statusMessage: "Center the barcode in the frame, then tap Scan."
       }));
+      loopRef.current?.stop();
       loopRef.current?.start(videoRef.current);
+      loopRef.current?.pause();
     } catch (nextError) {
       const normalizedError = nextError as ScannerErrorState;
       setError(normalizedError);
@@ -155,8 +161,32 @@ export function useBarcodeScanner(configOverrides?: Partial<ScannerConfig>) {
   };
 
   const resume = () => {
-    loopRef.current?.resume();
-    setScanState((current) => ({ ...current, isPaused: false, statusMessage: "Camera ready" }));
+    setScanState((current) => ({
+      ...current,
+      isPaused: false,
+      statusMessage: "Center the barcode in the frame, then tap Scan."
+    }));
+  };
+
+  const scanNow = async () => {
+    if (!cameraState.isActive) {
+      return;
+    }
+
+    setScanState((current) => ({
+      ...current,
+      isScanning: true,
+      isPaused: false,
+      statusMessage: "Scanning barcode...",
+      activeEngine: null
+    }));
+
+    await loopRef.current?.scanOnce();
+
+    setScanState((current) => ({
+      ...current,
+      isScanning: false
+    }));
   };
 
   const setZoom = async (value: number) => {
@@ -198,6 +228,7 @@ export function useBarcodeScanner(configOverrides?: Partial<ScannerConfig>) {
     stop,
     pause,
     resume,
+    scanNow,
     setZoom,
     toggleTorch,
     switchCamera,

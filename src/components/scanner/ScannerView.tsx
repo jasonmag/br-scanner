@@ -15,6 +15,7 @@ export function ScannerView() {
     stop,
     pause,
     resume,
+    scanNow,
     setZoom,
     toggleTorch,
     switchCamera,
@@ -47,6 +48,14 @@ export function ScannerView() {
             onClick={scanState.isPaused ? resume : pause}
           >
             {scanState.isPaused ? "Resume" : "Pause"}
+          </button>
+          <button
+            className="rounded-full border border-[var(--panel-border)] bg-white/70 px-4 py-3"
+            type="button"
+            onClick={() => void scanNow()}
+            disabled={!cameraState.isActive || scanState.isScanning}
+          >
+            {scanState.isScanning ? "Scanning..." : "Scan"}
           </button>
           <button
             className="rounded-full bg-[var(--accent)] px-4 py-3 text-white"
