@@ -23,10 +23,8 @@ proxy:
 
 registry:
   server: docker.io
-  username:
-    - KAMAL_REGISTRY_USERNAME
-  password:
-    - KAMAL_REGISTRY_PASSWORD
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>
+  password: <%= ENV.fetch("KAMAL_REGISTRY_PASSWORD") %>
 
 env:
   clear:
@@ -35,5 +33,3 @@ env:
     NEXT_PUBLIC_APP_NAME: Barcode Scanner
     NEXT_PUBLIC_ENABLE_AI_ASSIST: "false"
     NEXT_PUBLIC_ENABLE_DEBUG: "false"
-  secret:
-    - KAMAL_REGISTRY_PASSWORD
