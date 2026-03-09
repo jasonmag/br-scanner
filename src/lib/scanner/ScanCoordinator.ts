@@ -1,19 +1,20 @@
 import { CanvasPool } from "@/lib/scanner/utils/canvasPool";
 import { getCenterRoi } from "@/lib/scanner/heuristics/roi";
 import { NativeBarcodeDetectorEngine } from "@/lib/scanner/engines/NativeBarcodeDetectorEngine";
-import { OpenCvPreprocessor } from "@/lib/scanner/engines/OpenCvPreprocessor";
-import { ZXingFallbackEngine } from "@/lib/scanner/engines/ZXingFallbackEngine";
+import { ServerDecodeEngine } from "@/lib/scanner/engines/ServerDecodeEngine";
 import type { DetectionEngine } from "@/lib/scanner/engines/DetectionEngine";
 import type { ScanResult, ScannerConfig } from "@/types/scanner";
 
 export class ScanCoordinator {
   private readonly rawCanvasPool = new CanvasPool();
-  private readonly processedCanvasPool = new CanvasPool();
-  private readonly preprocessor = new OpenCvPreprocessor();
   private readonly engines: DetectionEngine[];
 
   constructor(private readonly config: ScannerConfig) {
-    this.engines = [new NativeBarcodeDetectorEngine(), new ZXingFallbackEngine()];
+    const nativeEngine = new NativeBarcodeDetectorEngine();
+    const serverEngine = new ServerDecodeEngine();
+    this.engines = config.preferNativeBarcodeDetector
+      ? [nativeEngine, serverEngine]
+      : [serverEngine, nativeEngine];
   }
 
   async detect(video: HTMLVideoElement, fullFrame = false): Promise<ScanResult[]> {
@@ -51,25 +52,12 @@ export class ScanCoordinator {
         continue;
       }
 
-      const input = engine.name === "native" ? rawCanvas : this.preprocess(rawCanvas);
-      const results = await engine.detect(input);
+      const results = await engine.detect(rawCanvas);
       if (results.length > 0) {
         return results;
       }
     }
 
     return [];
-  }
-
-  private preprocess(source: HTMLCanvasElement): HTMLCanvasElement {
-    const canvas = this.processedCanvasPool.get(source.width, source.height);
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) {
-      return source;
-    }
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(source, 0, 0);
-    return this.preprocessor.preprocess(canvas);
   }
 }

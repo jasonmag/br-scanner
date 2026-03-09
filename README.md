@@ -1,10 +1,11 @@
 # Barcode Scanner
 
-Mobile-first barcode scanner web app for phone browsers. It opens the rear camera, scans continuously without a capture button, prefers the native `BarcodeDetector` API when present, and falls back to a deterministic canvas-based decode pipeline scaffold when native support is unavailable.
+Mobile-first barcode scanner web app for phone browsers. It opens the rear camera, scans continuously without a capture button, prefers the native `BarcodeDetector` API when present, and falls back to a private Python decoder service running inside the same deployed container when local detection misses.
 
 ## Overview
 
 - Next.js + TypeScript app-router application
+- FastAPI barcode decoder for server-side fallback
 - Camera manager isolated from UI code
 - Continuous scan loop with duplicate suppression
 - Zoom and torch capability detection
@@ -47,6 +48,7 @@ The scanner requires camera access and should be served over HTTPS in production
 ```env
 NODE_ENV=production
 PORT=3000
+BARCODE_DECODER_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_APP_NAME=Barcode Scanner
 NEXT_PUBLIC_ENABLE_AI_ASSIST=false
 NEXT_PUBLIC_ENABLE_DEBUG=false
@@ -94,11 +96,11 @@ kamal deploy
 
 ## Privacy Notes
 
-The scanner is intended to process frames locally in the browser. This project does not upload camera frames or store images by default.
+The app can send scan frames to the private in-container Python decoder when browser-side detection fails. The decoder processes each upload entirely in memory, returns decoded barcode content, and does not persist images or write scan files to disk.
 
 ## Known Limitations
 
-- The fallback decoder uses `zxing-wasm` and serves its `.wasm` binary from the app itself, but real mobile-browser testing is still required for difficult angles, glare, and blur.
+- The server-side fallback improves difficult scans, but real mobile-browser testing is still required for glare, blur, and steep perspective distortion.
 - The AI assist layer is intentionally optional and currently a non-blocking placeholder.
 - Real mobile-browser testing is still required for zoom and torch behavior across devices.
 

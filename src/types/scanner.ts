@@ -10,7 +10,7 @@ export type BarcodeFormatName =
   | "data_matrix"
   | "unknown";
 
-export type ScanEngineSource = "native" | "fallback" | "ai-assisted";
+export type ScanEngineSource = "native" | "server" | "fallback" | "ai-assisted";
 
 export interface BoundingBox {
   x: number;
