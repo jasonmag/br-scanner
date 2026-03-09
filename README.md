@@ -98,13 +98,13 @@ The scanner is intended to process frames locally in the browser. This project d
 
 ## Known Limitations
 
-- The native detection path is functional, but the fallback decoder is currently a deterministic stub and needs a real decode library integration.
+- The fallback decoder uses `zxing-wasm` and serves its `.wasm` binary from the app itself, but real mobile-browser testing is still required for difficult angles, glare, and blur.
 - The AI assist layer is intentionally optional and currently a non-blocking placeholder.
 - Real mobile-browser testing is still required for zoom and torch behavior across devices.
 
 ## Future Improvements
 
-- Integrate a production fallback decoder such as ZXing WASM
+- Add stronger perspective correction for steep barcode angles
 - Add optional ONNX region proposal for difficult scans
 - Expand integration and end-to-end test coverage
 - Add stronger scan quality hints driven by live heuristics

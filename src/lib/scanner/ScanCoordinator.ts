@@ -7,7 +7,8 @@ import type { DetectionEngine } from "@/lib/scanner/engines/DetectionEngine";
 import type { ScanResult, ScannerConfig } from "@/types/scanner";
 
 export class ScanCoordinator {
-  private readonly canvasPool = new CanvasPool();
+  private readonly rawCanvasPool = new CanvasPool();
+  private readonly processedCanvasPool = new CanvasPool();
   private readonly preprocessor = new OpenCvPreprocessor();
   private readonly engines: DetectionEngine[];
 
@@ -20,16 +21,18 @@ export class ScanCoordinator {
       return [];
     }
 
-    const targetCanvas = this.canvasPool.get(video.videoWidth, video.videoHeight);
-    const context = targetCanvas.getContext("2d", { willReadFrequently: true });
+    const roi = fullFrame ? null : getCenterRoi(video.videoWidth, video.videoHeight);
+    const targetWidth = roi?.width ?? video.videoWidth;
+    const targetHeight = roi?.height ?? video.videoHeight;
+    const rawCanvas = this.rawCanvasPool.get(targetWidth, targetHeight);
+    const context = rawCanvas.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return [];
     }
 
     if (fullFrame) {
-      context.drawImage(video, 0, 0, targetCanvas.width, targetCanvas.height);
+      context.drawImage(video, 0, 0, rawCanvas.width, rawCanvas.height);
     } else {
-      const roi = getCenterRoi(video.videoWidth, video.videoHeight);
       context.drawImage(
         video,
         roi.x,
@@ -38,24 +41,35 @@ export class ScanCoordinator {
         roi.height,
         0,
         0,
-        targetCanvas.width,
-        targetCanvas.height
+        rawCanvas.width,
+        rawCanvas.height
       );
     }
-
-    const preprocessed = this.preprocessor.preprocess(targetCanvas);
 
     for (const engine of this.engines) {
       if (!(await engine.isAvailable())) {
         continue;
       }
 
-      const results = await engine.detect(preprocessed);
+      const input = engine.name === "native" ? rawCanvas : this.preprocess(rawCanvas);
+      const results = await engine.detect(input);
       if (results.length > 0) {
         return results;
       }
     }
 
     return [];
+  }
+
+  private preprocess(source: HTMLCanvasElement): HTMLCanvasElement {
+    const canvas = this.processedCanvasPool.get(source.width, source.height);
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      return source;
+    }
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(source, 0, 0);
+    return this.preprocessor.preprocess(canvas);
   }
 }

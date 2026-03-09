@@ -1,8 +1,8 @@
 import type { BoundingBox } from "@/types/scanner";
 
 export function getCenterRoi(width: number, height: number): BoundingBox {
-  const roiWidth = Math.round(width * 0.72);
-  const roiHeight = Math.round(height * 0.32);
+  const roiWidth = Math.round(width * 0.82);
+  const roiHeight = Math.round(height * 0.42);
 
   return {
     x: Math.round((width - roiWidth) / 2),

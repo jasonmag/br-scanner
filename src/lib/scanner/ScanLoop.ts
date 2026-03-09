@@ -78,7 +78,7 @@ export class ScanLoop {
     const startedAt = performance.now();
 
     try {
-      const fullFrame = this.session.failedRoiAttempts > 0 && this.session.failedRoiAttempts % 4 === 0;
+      const fullFrame = this.session.failedRoiAttempts > 0 && this.session.failedRoiAttempts % 2 === 0;
       const results = await this.coordinator.detect(this.video, fullFrame);
       const durationMs = performance.now() - startedAt;
       this.recordAttempt(durationMs);
