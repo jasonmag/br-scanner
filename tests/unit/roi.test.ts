@@ -1,0 +1,12 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { getCenterRoi } from "../../src/lib/scanner/heuristics/roi";
+
+test("creates a centered roi", () => {
+  const roi = getCenterRoi(1000, 800);
+
+  assert.equal(roi.width, 720);
+  assert.equal(roi.height, 256);
+  assert.equal(roi.x, 140);
+  assert.equal(roi.y, 272);
+});

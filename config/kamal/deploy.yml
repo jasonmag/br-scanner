@@ -1,0 +1,33 @@
+service: br-scanner
+image: jasonmaglangit/br-scanner
+
+servers:
+  web:
+    hosts:
+      - nexstar
+
+proxy:
+  ssl: true
+  host: scanner.jasonmag.com
+  app_port: 3000
+  healthcheck:
+    path: /api/health
+    interval: 10
+    timeout: 5
+
+registry:
+  server: docker.io
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  clear:
+    NODE_ENV: production
+    PORT: "3000"
+    NEXT_PUBLIC_APP_NAME: Barcode Scanner
+    NEXT_PUBLIC_ENABLE_AI_ASSIST: "false"
+    NEXT_PUBLIC_ENABLE_DEBUG: "false"
+  secret:
+    - KAMAL_REGISTRY_PASSWORD
