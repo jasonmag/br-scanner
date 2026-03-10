@@ -21,6 +21,12 @@ export default function HomePage() {
             Open Scanner
           </Link>
           <a
+            className="rounded-full border border-[var(--panel-border)] px-6 py-3 text-[var(--text)] transition hover:bg-white/60"
+            href="/integration"
+          >
+            API Integration
+          </a>
+          <a
             className="rounded-full border border-[var(--panel-border)] px-6 py-3 text-[var(--text)]"
             href="/api/health"
           >

@@ -49,10 +49,55 @@ The scanner requires camera access and should be served over HTTPS in production
 NODE_ENV=production
 PORT=3000
 BARCODE_DECODER_URL=http://127.0.0.1:8000
+BARCODE_API_ALLOWED_ORIGINS=*
 NEXT_PUBLIC_APP_NAME=Barcode Scanner
 NEXT_PUBLIC_ENABLE_AI_ASSIST=false
 NEXT_PUBLIC_ENABLE_DEBUG=false
 ```
+
+`BARCODE_API_ALLOWED_ORIGINS` accepts `*` or a comma-separated list of allowed browser origins for cross-project requests.
+
+## External API
+
+Other projects can submit an image to the scanner service and receive the decoded barcode value back.
+
+- `POST /api/identify`
+- Content type: `multipart/form-data`
+- Field name: `image`
+
+Example:
+
+```bash
+curl -X POST http://localhost:3000/api/identify \
+  -F "image=@./barcode.jpg"
+```
+
+Response:
+
+```json
+{
+  "found": true,
+  "value": "9556091140128",
+  "format": "ean_13",
+  "confidence": 0.88,
+  "results": [
+    {
+      "value": "9556091140128",
+      "format": "ean_13",
+      "confidence": 0.88
+    }
+  ]
+}
+```
+
+The existing `POST /api/decode` route still works and now returns the same response shape, so current scanner behavior remains compatible while external clients get a simpler top-level `value`.
+
+Documentation:
+
+- Integration guide: [docs/api-integration-guide.md](docs/api-integration-guide.md)
+- API user registration guide: [docs/api-user-registration.md](docs/api-user-registration.md)
+- Split-service architecture: [docs/api-access-architecture.md](docs/api-access-architecture.md)
+- Separate access-service agent: [API_ACCESS_AGENT.md](API_ACCESS_AGENT.md)
 
 ## Docker
 

@@ -1,7 +1,11 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { createOptionsResponse, handleDecodeRequest } from "@/lib/server/barcodeApi";
+import { createIdentifyMetadata, createOptionsResponse, handleDecodeRequest } from "@/lib/server/barcodeApi";
+
+export async function GET(request: Request) {
+  return createIdentifyMetadata(request);
+}
 
 export async function POST(request: Request) {
   return handleDecodeRequest(request);

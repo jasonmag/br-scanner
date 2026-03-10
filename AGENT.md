@@ -806,6 +806,26 @@ NEXT_PUBLIC_ENABLE_DEBUG=false
 
 If more variables are added, document all of them.
 
+## 29.1 External API Documentation
+If the project exposes an API for use by other applications, it must:
+
+- Provide a clear documentation link in `README.md`
+- Include request and response examples
+- Include integration examples for external applications
+- Document security expectations for API consumers
+
+## 29.2 API Consumer Registration
+If the project exposes an API for external consumers, it must be designed with API user registration in mind.
+
+Minimum requirements:
+
+- Document how an API consumer is registered
+- Define how credentials are issued to the consumer
+- Do not rely on CORS as the only protection mechanism
+- Prefer API key or token-based access for non-public usage
+- Document how consumers are identified, activated, deactivated, and rotated
+- Keep barcode decoding separate from API user/account management concerns where practical
+
 ## 30. Acceptance Criteria
 The build is acceptable only if all are true:
 - Mobile browser opens rear camera successfully.
@@ -820,6 +840,7 @@ The build is acceptable only if all are true:
 - Docker build succeeds.
 - Kamal config is present and usable.
 - README explains setup and deployment.
+- README links to external API usage documentation when external integration is supported.
 - Architecture is modular and maintainable.
 - AI assist is optional and non-blocking.
 
