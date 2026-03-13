@@ -822,7 +822,10 @@ Minimum requirements:
 - Document how an API consumer is registered
 - Define how credentials are issued to the consumer
 - Do not rely on CORS as the only protection mechanism
+- Document whether unauthenticated free access exists and what rate limit applies to it
 - Prefer API key or token-based access for non-public usage
+- Confirm authenticated API credentials with the authentication/access service instead of a local static key list
+- Treat authenticated requests as unlimited by default unless an explicit policy says otherwise
 - Document how consumers are identified, activated, deactivated, and rotated
 - Keep barcode decoding separate from API user/account management concerns where practical
 
@@ -841,6 +844,9 @@ The build is acceptable only if all are true:
 - Kamal config is present and usable.
 - README explains setup and deployment.
 - README links to external API usage documentation when external integration is supported.
+- Free unauthenticated API access, if offered, is rate-limited and documented.
+- Authenticated API access, if offered, documents that default policy is unlimited unless otherwise configured.
+- Authenticated API access, if offered, is confirmed against the authentication/access service before barcode decoding proceeds.
 - Architecture is modular and maintainable.
 - AI assist is optional and non-blocking.
 

@@ -1,13 +1,10 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 
 export const metadata = {
   title: "API Integration | Barcode Scanner",
   description: "How to integrate the barcode scanner API with other applications."
 };
-
-const codeExample = `curl -X POST https://your-scanner-domain.com/api/identify \\
-  -H "Authorization: Bearer <api_key>" \\
-  -F "image=@./barcode.jpg"`;
 
 const responseExample = `{
   "found": true,
@@ -23,7 +20,22 @@ const responseExample = `{
   ]
 }`;
 
-export default function IntegrationPage() {
+function resolveBaseUrl(headerStore: Headers): string {
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "localhost:3000";
+  const proto = headerStore.get("x-forwarded-proto") ?? (host.includes("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+export default async function IntegrationPage() {
+  const headerStore = await headers();
+  const baseUrl = resolveBaseUrl(headerStore);
+  const codeExample = `curl -X POST ${baseUrl}/api/identify \\
+  -H "Authorization: Bearer <api_key>" \\
+  -F "image=@./barcode.jpg"`;
+
+  const freeTierExample = `curl -X POST ${baseUrl}/api/identify \\
+  -F "image=@./barcode.jpg"`;
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-12">
       <div className="rounded-[2rem] border border-[var(--panel-border)] bg-[var(--panel)] p-8 shadow-scanner backdrop-blur">
@@ -63,6 +75,8 @@ export default function IntegrationPage() {
               <li>Field: `image`</li>
               <li>Success: returns `found`, `value`, `format`, `confidence`, and `results`</li>
               <li>Max upload size: `2 MB`</li>
+              <li>Free tier: no credentials, rate-limited</li>
+              <li>Registered tier: `Authorization: Bearer &lt;api_key&gt;` or `X-API-Key`, validated by the auth app</li>
             </ul>
           </div>
 
@@ -76,13 +90,22 @@ export default function IntegrationPage() {
               <li>Register each consuming application separately</li>
               <li>Issue one API key per application</li>
               <li>Track owner, status, and allowed origins</li>
+              <li>Keep the free tier limited and reserve unlimited access for registered apps</li>
+              <li>Confirm registered keys through the authentication service before forwarding to the decoder</li>
               <li>Rotate or revoke credentials without affecting other integrations</li>
             </ul>
           </div>
         </section>
 
+        <section className="mt-8 rounded-3xl border border-[var(--panel-border)] bg-[#1f2937] p-6 text-white">
+          <h2 className="text-2xl font-semibold">Free Tier Request</h2>
+          <pre className="mt-4 overflow-x-auto text-sm leading-6 text-slate-100">
+            <code>{freeTierExample}</code>
+          </pre>
+        </section>
+
         <section className="mt-8 rounded-3xl border border-[var(--panel-border)] bg-[#111827] p-6 text-white">
-          <h2 className="text-2xl font-semibold">Example Request</h2>
+          <h2 className="text-2xl font-semibold">Registered Request</h2>
           <pre className="mt-4 overflow-x-auto text-sm leading-6 text-orange-100">
             <code>{codeExample}</code>
           </pre>
@@ -110,7 +133,7 @@ export default function IntegrationPage() {
             <h2 className="text-2xl font-semibold">More Documentation</h2>
             <ul className="mt-4 space-y-3 text-sm text-[var(--muted)]">
               <li>
-                Repo guide: <code>docs/api-integration-guide.md</code>
+                Client app setup guide: <code>docs/api-integration-guide.md</code>
               </li>
               <li>
                 Registration guide: <code>docs/api-user-registration.md</code>

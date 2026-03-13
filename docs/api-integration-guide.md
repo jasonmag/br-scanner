@@ -15,12 +15,12 @@ Another app sends an image that contains a barcode to this service, and this ser
 Base URL examples:
 
 - Local: `http://localhost:3000`
-- Production: `https://your-scanner-domain.com`
+- Current: `http://localhost:3000`
 
 Full URL example:
 
 ```text
-https://your-scanner-domain.com/api/identify
+http://localhost:3000/api/identify
 ```
 
 ## Request Contract
@@ -30,9 +30,19 @@ Send one image file in a multipart form request.
 Example `curl` request:
 
 ```bash
-curl -X POST https://your-scanner-domain.com/api/identify \
+curl -X POST http://localhost:3000/api/identify \
   -F "image=@./barcode.jpg"
 ```
+
+Registered request example:
+
+```bash
+curl -X POST http://localhost:3000/api/identify \
+  -H "Authorization: Bearer <api_key>" \
+  -F "image=@./barcode.jpg"
+```
+
+For registered access, this scanner confirms the key with the external authentication app before it sends the image to the decoder.
 
 ## Response Contract
 
@@ -74,6 +84,9 @@ Possible error cases:
 
 - `400` if the `image` field is missing
 - `413` if the uploaded image is larger than `2 MB`
+- `401` if an API key is provided but invalid
+- `503` if an API key is provided but the authentication service cannot be reached
+- `429` if the free unauthenticated tier exceeds its rate limit
 
 Example `400` response:
 
@@ -152,7 +165,7 @@ async function identifyBarcode(file: File) {
   const formData = new FormData();
   formData.set("image", file);
 
-  const response = await fetch("https://your-scanner-domain.com/api/identify", {
+  const response = await fetch("http://localhost:3000/api/identify", {
     method: "POST",
     body: formData
   });
@@ -208,7 +221,7 @@ import requests
 
 with open("barcode.jpg", "rb") as image_file:
     response = requests.post(
-        "https://your-scanner-domain.com/api/identify",
+        "http://localhost:3000/api/identify",
         files={"image": ("barcode.jpg", image_file, "image/jpeg")},
         timeout=15,
     )
@@ -237,8 +250,10 @@ Recommended handling:
 
 Current state:
 
-- The endpoint currently supports cross-origin access control through CORS.
-- API consumer registration should be part of production rollout.
+- The endpoint supports two access modes on the same route.
+- Free unauthenticated access is available but rate-limited.
+- Registered callers can send `Authorization: Bearer <api_key>` or `X-API-Key: <api_key>`.
+- Registered keys are confirmed by an external authentication service, not by static keys stored in this app.
 - CORS can restrict browser callers, but CORS is not authentication.
 
 For the recommended registration and credential model, see [API User Registration Guide](./api-user-registration.md).
